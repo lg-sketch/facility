@@ -1,17 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html lang="de">
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stack Design System</title>
+    <title>Deti Facility Management GmbH - Umzug & Reinigung Bern</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
       body {
         font-family: 'Inter', sans-serif;
         background-color: #EEF2FF;
       }
-      /* Hide scrollbar for clean UI in grid */
       .no-scrollbar::-webkit-scrollbar {
         display: none;
       }
@@ -20,29 +31,650 @@
         scrollbar-width: none;
       }
       
-      /* Custom Animation for Dashed Line */
       @keyframes dash {
         to {
           stroke-dashoffset: -24;
         }
       }
-      .animate-dash {
-        animation: dash 1s linear infinite;
+      .animate-[dash_20s_linear_infinite] {
+        animation: dash 20s linear infinite;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      .animate-float {
+        animation: float 3s ease-in-out infinite;
       }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "vite": "https://aistudiocdn.com/vite@^7.2.6",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
 }
 </script>
 </head>
-  <body>
+<body>
     <div id="root"></div>
-  </body>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        /* --- ICONS (Lucide Mock) --- */
+        const Icon = ({ d, className, ...props }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                className={className} {...props}
+            >
+                {Array.isArray(d) ? d.map((path, i) => <path key={i} d={path} />) : <path d={d} />}
+            </svg>
+        );
+
+        const Icons = {
+            Phone: (p) => <Icon d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" {...p} />,
+            Mail: (p) => <Icon d={["M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z", "M22 6l-10 7L2 6"]} {...p} />,
+            MapPin: (p) => <Icon d={["M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z", "M12 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"]} {...p} />,
+            ShieldCheck: (p) => <Icon d={["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", "M9 12l2 2 4-4"]} {...p} />,
+            Menu: (p) => <Icon d={["M4 12h16", "M4 6h16", "M4 18h16"]} {...p} />,
+            X: (p) => <Icon d={["M18 6L6 18", "M6 6l12 12"]} {...p} />,
+            ChevronRight: (p) => <Icon d="M9 18l6-6-6-6" {...p} />,
+            ArrowRight: (p) => <Icon d={["M5 12h14", "M12 5l7 7-7 7"]} {...p} />,
+            Star: (p) => <Icon d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" {...p} />,
+            Quote: (p) => <Icon d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H6c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-2c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" {...p} />, // Simplified Quote
+            CheckCircle: (p) => <Icon d={["M22 11.08V12a10 10 0 1 1-5.93-9.14", "M22 4L12 14.01l-3-3"]} {...p} />,
+            AlertCircle: (p) => <Icon d={["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z", "M12 8v4", "M12 16h.01"]} {...p} />,
+            Truck: (p) => <Icon d={["M1 3h15v13H1z", "M16 8h4l3 3v5h-7V8z", "M5.5 19a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z", "M18.5 19a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"]} {...p} />,
+            Sparkles: (p) => <Icon d={["M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"]} {...p} />,
+            Box: (p) => <Icon d={["M21 16.5l-9 5.25-9-5.25", "M3.27 6.96L12 12.01l8.73-5.05", "M12 22.08V12", "M12 2L3 7l9 5 10-5-9-5z"]} {...p} />,
+            FileText: (p) => <Icon d={["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z", "M14 2v6h6", "M16 13H8", "M16 17H8", "M10 9H8"]} {...p} />,
+            Calendar: (p) => <Icon d={["M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z", "M16 2v4", "M8 2v4", "M3 10h18"]} {...p} />,
+            Key: (p) => <Icon d={["M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"]} {...p} />,
+            Wallet: (p) => <Icon d={["M20 7h-7", "M14 11h6", "M1 5v14a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H3a2 2 0 0 0-2 2z"]} {...p} />,
+            Send: (p) => <Icon d={["M22 2L11 13", "M22 2l-7 20-4-9-9-4 20-7z"]} {...p} />,
+        };
+
+        const ArrowConnector = ({ className }) => (
+            <svg viewBox="0 0 100 20" className={`w-full h-auto overflow-visible ${className}`} preserveAspectRatio="none">
+                <path 
+                    d="M0,10 Q50,20 100,10" 
+                    fill="none" 
+                    stroke="#BFDBFE" 
+                    strokeWidth="2" 
+                    strokeDasharray="4 4"
+                    className="animate-[dash_20s_linear_infinite]"
+                />
+                <path 
+                    d="M95,6 L100,10 L95,14" 
+                    fill="none" 
+                    stroke="#BFDBFE" 
+                    strokeWidth="2" 
+                />
+            </svg>
+        );
+
+        /* --- UI COMPONENTS --- */
+
+        const Button = ({ children, variant = 'primary', fullWidth = false, className = '', ...props }) => {
+            const baseClasses = "rounded-full font-medium transition-all duration-200 active:scale-95 flex items-center justify-center";
+            const variants = {
+                primary: "bg-[#000080] text-white hover:bg-opacity-90 shadow-lg shadow-blue-900/20",
+                secondary: "bg-white text-[#000080] hover:bg-gray-50",
+                outline: "border border-gray-200 text-gray-700 hover:bg-gray-50",
+                ghost: "bg-transparent text-gray-600 hover:bg-gray-100"
+            };
+            return (
+                <button className={`${baseClasses} ${variants[variant]} ${fullWidth ? "w-full" : ""} px-6 py-3 ${className}`} {...props}>
+                    {children}
+                </button>
+            );
+        };
+
+        const Card = ({ children, className = '', variant = 'light', onClick }) => {
+            const baseClasses = "rounded-[32px] overflow-hidden relative transition-all duration-300";
+            let variantClasses = "bg-white text-gray-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)]";
+            if (variant === 'dark') variantClasses = "bg-[#000080] text-white shadow-[0_8px_30px_rgb(0,0,128,0.2)]";
+            else if (variant === 'image') variantClasses = "text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)]";
+            
+            return (
+                <div className={`${baseClasses} ${variantClasses} ${className}`} onClick={onClick}>
+                    {children}
+                </div>
+            );
+        };
+
+        const Input = ({ icon, label, error, className = '', ...props }) => (
+            <div className="w-full">
+                {label && <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">{label}</label>}
+                <div className="relative group">
+                    {icon && <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${error ? 'text-red-400' : 'text-gray-400 group-focus-within:text-[#000080]'}`}>{icon}</div>}
+                    <input
+                        className={`w-full bg-white text-gray-900 rounded-2xl border-2 px-4 py-3 outline-none transition-all duration-200 placeholder:text-gray-400 font-medium ${error ? 'border-red-100 bg-red-50 focus:border-red-500' : 'border-transparent focus:border-[#000080]/10 focus:bg-white hover:bg-white'} ${!error && 'bg-gray-50/50'} ${icon ? 'pl-11' : ''} ${className}`}
+                        {...props}
+                    />
+                </div>
+            </div>
+        );
+
+        const Badge = ({ children, variant = 'primary', className = '' }) => {
+            const variants = {
+                primary: "bg-[#000080] text-white shadow-md shadow-blue-900/20",
+                secondary: "bg-white text-[#000080]",
+                outline: "border border-gray-200 text-gray-600 bg-transparent"
+            };
+            return (
+                <span className={`inline-flex items-center rounded-full font-bold uppercase tracking-wider px-4 py-1.5 text-xs ${variants[variant]} ${className}`}>
+                    {children}
+                </span>
+            );
+        };
+
+        const Logo = ({ color = 'blue', size = 32, className = '' }) => {
+            const fill = color === 'white' ? 'white' : '#000080';
+            return (
+                <svg width={size} height={size} viewBox="0 0 32 32" fill="none" className={className}>
+                    <defs>
+                        <linearGradient id="blueMintGradient" x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+                            <stop stopColor={color === 'white' ? '#FFFFFF' : '#000080'} />
+                            <stop offset="1" stopColor={color === 'white' ? '#E0F2FE' : '#2DD4BF'} />
+                        </linearGradient>
+                    </defs>
+                    <path d="M16 2L4 8V24L16 30L28 24V8L16 2Z" stroke="none" fill={color === 'white' ? 'white' : 'url(#blueMintGradient)'} fillOpacity="0.1" />
+                    <path d="M16 8L10 11V14.5L16 17.5L22 14.5V11L16 8Z" fill={color === 'white' ? 'white' : 'url(#blueMintGradient)'} />
+                    <path d="M16 17.5L10 20.5V24L16 27L22 24V20.5L16 17.5Z" fill={color === 'white' ? 'white' : 'url(#blueMintGradient)'} />
+                </svg>
+            );
+        };
+
+        const TextLogo = ({ color = 'blue', text = 'Deti' }) => (
+            <div className="flex items-center gap-2">
+                <Logo color={color} size={28} />
+                <span className={`font-bold text-xl tracking-tight ${color === 'white' ? 'text-white' : 'text-[#000080]'}`}>{text}</span>
+            </div>
+        );
+
+        /* --- WIDGETS --- */
+
+        const ContactSection = () => (
+            <div className="relative py-24 lg:py-32 overflow-hidden rounded-t-[48px] -mt-12 z-20">
+                <div className="absolute inset-0 z-0">
+                    <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop" alt="Contact" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#000080]/80 via-[#000080]/90 to-[#000080]" />
+                </div>
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
+                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        <div className="text-white space-y-8">
+                            <h2 className="text-4xl md:text-5xl font-bold leading-tight">Bereit für einen <br/><span className="text-blue-300">entspannten Neuanfang?</span></h2>
+                            <p className="text-xl text-blue-100 max-w-lg leading-relaxed">Verschwenden Sie keine wertvolle Zeit. Lassen Sie uns die Arbeit machen. Fordern Sie jetzt Ihre unverbindliche Offerte an.</p>
+                            <div className="flex flex-col gap-4 pt-4">
+                                <a href="tel:+41791511216" className="flex items-center gap-4 text-xl font-medium hover:text-blue-300 transition-colors">
+                                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm"><Icons.Phone className="w-6 h-6" /></div>+41 79 151 12 16
+                                </a>
+                                <a href="mailto:info@deti-reinigung.ch" className="flex items-center gap-4 text-xl font-medium hover:text-blue-300 transition-colors">
+                                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm"><Icons.Mail className="w-6 h-6" /></div>info@deti-reinigung.ch
+                                </a>
+                            </div>
+                        </div>
+                        <Card className="p-8 md:p-10 shadow-2xl shadow-blue-900/50 backdrop-blur-sm bg-white/95">
+                            <h3 className="text-2xl font-bold text-[#000080] mb-6">Gratis Offerte anfordern</h3>
+                            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Input placeholder="Vorname" className="bg-gray-50" />
+                                    <Input placeholder="Nachname" className="bg-gray-50" />
+                                </div>
+                                <Input placeholder="E-Mail Adresse" type="email" className="bg-gray-50" />
+                                <Input placeholder="Telefonnummer" type="tel" className="bg-gray-50" />
+                                <div className="space-y-3 pt-2">
+                                    <label className="text-sm font-medium text-gray-700">Ich interessiere mich für:</label>
+                                    <div className="flex gap-3">
+                                        <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 rounded-xl border border-gray-200 hover:border-[#000080] transition-colors">
+                                            <input type="radio" name="service" className="accent-[#000080]" />
+                                            <span className="text-sm text-gray-700">Reinigung</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-4 py-2 rounded-xl border border-gray-200 hover:border-[#000080] transition-colors">
+                                            <input type="radio" name="service" className="accent-[#000080]" />
+                                            <span className="text-sm text-gray-700">Umzug</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <Button variant="primary" fullWidth className="mt-4 h-12 text-lg">Jetzt anfragen <Icons.Send className="w-4 h-4 ml-2" /></Button>
+                                <p className="text-xs text-center text-gray-400 mt-4">Unverbindlich & kostenlos. Wir antworten in der Regel innert 24h.</p>
+                            </form>
+                        </Card>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const Testimonials = () => (
+            <section className="py-24 relative overflow-hidden my-8">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl md:text-4xl font-bold text-[#000080] mb-4">Das sagen unsere Kunden</h2>
+                        <div className="flex justify-center items-center gap-2 text-gray-500 font-medium">
+                            <div className="flex gap-1 text-yellow-400">{[1,2,3,4,5].map(i => <Icons.Star key={i} className="w-5 h-5 fill-current" />)}</div>
+                            <span>4.9/5 (500+ Bewertungen)</span>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
+                        {[
+                            { id: 1, content: "Die Endreinigung war absolut stressfrei. Die Abnahmegarantie hat super funktioniert, der Vermieter war sofort zufrieden.", author: "Sarah M.", role: "Privatkunde", location: "Bern", rating: 5 },
+                            { id: 2, content: "Wir haben unser komplettes Büro mit Deti gezügelt. Alles wurde sorgfältig verpackt und pünktlich geliefert. Sehr professionell.", author: "Markus B.", role: "Geschäftsführer", location: "Thun", rating: 5 },
+                            { id: 3, content: "Sehr freundliches Personal und faire Preise. Ich hatte Angst vor dem Umzug, aber die Jungs haben das super gemanagt.", author: "Julia K.", role: "Privatkunde", location: "Köniz", rating: 5 }
+                        ].map((t) => (
+                            <div key={t.id} className="flex flex-col items-center text-center group">
+                                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-[#000080] mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <Icons.Quote className="w-6 h-6 fill-current opacity-80" />
+                                </div>
+                                <p className="text-lg text-gray-700 leading-relaxed mb-8 italic">"{t.content}"</p>
+                                <div className="mt-auto">
+                                    <h4 className="font-bold text-[#000080] text-lg">{t.author}</h4>
+                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">{t.role} aus {t.location}</p>
+                                    <div className="flex justify-center gap-1 mt-3 text-yellow-400 opacity-60">{[...Array(t.rating)].map((_, i) => <Icons.Star key={i} className="w-3 h-3 fill-current" />)}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+
+        /* --- PAGES --- */
+
+        const HomePage = ({ onNavigate }) => (
+            <div className="space-y-16">
+                {/* Hero */}
+                <div className="w-full bg-[#000080] text-white pt-12 pb-24 lg:pt-20 lg:pb-32 relative overflow-hidden rounded-b-[48px] shadow-2xl">
+                    <div className="absolute inset-0 z-0">
+                        <img src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=2000&auto=format&fit=crop" className="w-full h-full object-cover opacity-40" style={{mixBlendMode: 'overlay'}} />
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#000080]" />
+                    </div>
+                    <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
+                        <div className="space-y-8 animate-[fadeIn_0.7s_ease-out]">
+                            <Badge variant="secondary" className="bg-white/10 text-white border border-white/20 backdrop-blur-md px-4 py-2 text-sm">Bern & Umgebung</Badge>
+                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">Zügeln & Reinigen <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white">ohne Stress.</span></h1>
+                            <p className="text-blue-100 text-lg md:text-xl leading-relaxed max-w-lg">Ihr Partner für Umzug und Reinigung in Bern mit <strong>100% Abnahmegarantie</strong>. Konzentrieren Sie sich auf das Neue, wir machen den Rest.</p>
+                            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                                <Button variant="secondary" className="h-14 px-8 text-lg bg-white text-[#000080]" onClick={() => onNavigate('contact')}>Offerte anfordern</Button>
+                                <Button variant="outline" className="h-14 px-8 text-lg text-white border-white/30 hover:bg-white/10 hover:border-white" onClick={() => onNavigate('cleaning')}>Unsere Services</Button>
+                            </div>
+                            <div className="pt-8 flex items-center gap-6 text-sm font-medium text-blue-200/80">
+                                <div className="flex -space-x-3">{[1,2,3,4].map(i => (<div key={i} className="w-10 h-10 rounded-full border-2 border-[#000080] bg-gray-200 overflow-hidden"><img src={`https://picsum.photos/id/${i+60}/50/50`} className="w-full h-full object-cover"/></div>))}</div>
+                                <div><div className="text-white flex items-center gap-1"><Icons.Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /><span className="font-bold">4.9/5</span></div><span>Kundenzufriedenheit</span></div>
+                            </div>
+                        </div>
+                        <div className="relative hidden lg:block animate-[fadeIn_0.7s_ease-out_0.2s]">
+                            <div className="relative rounded-[32px] overflow-hidden shadow-2xl border-[6px] border-white/10 rotate-2 hover:rotate-0 transition-transform duration-500 ease-out group">
+                                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1000&auto=format&fit=crop" className="w-full h-[600px] object-cover transition-transform duration-700 group-hover:scale-105" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#000080]/80 via-transparent to-transparent opacity-60" />
+                                <div className="absolute bottom-10 left-10 right-10">
+                                    <Card className="bg-white/95 backdrop-blur-xl p-5 rounded-2xl shadow-xl flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-[#000080] rounded-full flex items-center justify-center text-white shrink-0"><Icons.ShieldCheck className="w-6 h-6" /></div>
+                                        <div><h4 className="font-bold text-[#000080] leading-tight">Abnahmegarantie inklusive</h4><p className="text-xs text-gray-500 mt-1">Keine Diskussionen bei der Übergabe.</p></div>
+                                    </Card>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Features Strip */}
+                <div className="w-full max-w-[96%] mx-auto px-4 md:px-6 -mt-12 md:-mt-8 relative z-20">
+                    <div className="bg-blue-50/90 backdrop-blur-sm md:bg-transparent border border-blue-200 md:border-0 rounded-3xl md:rounded-none p-6 md:p-0 shadow-xl md:shadow-none grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-6">
+                        {[
+                            { icon: Icons.ShieldCheck, text: "100% Abnahmegarantie", sub: "Garantiert sorgenfrei" },
+                            { icon: Icons.Wallet, text: "Faire Pauschalpreise", sub: "Keine versteckten Kosten" },
+                            { icon: Icons.CheckCircle, text: "Versicherung inklusive", sub: "Voll abgesichert" }
+                        ].map((item, i) => (
+                            <div key={i} className="flex items-center gap-4 p-2 md:p-4 text-[#000080]">
+                                <div className="w-12 h-12 rounded-full bg-white md:bg-blue-100 flex items-center justify-center text-[#000080] shrink-0 shadow-sm md:shadow-none border border-blue-100 md:border-0"><item.icon className="w-6 h-6" /></div>
+                                <div><span className="block font-bold text-lg leading-tight">{item.text}</span><span className="text-sm text-gray-500">{item.sub}</span></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Services */}
+                <div className="max-w-7xl mx-auto px-6 pt-8 pb-8">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl md:text-4xl font-bold text-[#000080] mb-4">Unsere Dienstleistungen</h2>
+                        <p className="text-gray-600">Alles aus einer Hand für Bern und Umgebung.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                        <Card className="hover:shadow-xl transition-shadow cursor-pointer group p-8" onClick={() => onNavigate('cleaning')}>
+                            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-[#000080] mb-6 group-hover:bg-[#000080] group-hover:text-white transition-colors"><Icons.Sparkles className="w-7 h-7" /></div>
+                            <h3 className="text-2xl font-bold mb-3 text-gray-900">Reinigung</h3>
+                            <p className="text-gray-500 mb-6 leading-relaxed">Endreinigung mit Abnahmegarantie. Wir putzen bis in die letzte Ecke.</p>
+                            <div className="flex items-center text-[#000080] font-bold text-sm group-hover:underline">Mehr erfahren <Icons.ArrowRight className="w-4 h-4 ml-2" /></div>
+                        </Card>
+                        <Card className="hover:shadow-xl transition-shadow cursor-pointer group p-8" onClick={() => onNavigate('moving')}>
+                            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-[#000080] mb-6 group-hover:bg-[#000080] group-hover:text-white transition-colors"><Icons.Truck className="w-7 h-7" /></div>
+                            <h3 className="text-2xl font-bold mb-3 text-gray-900">Umzüge</h3>
+                            <p className="text-gray-500 mb-6 leading-relaxed">Sicherer Möbeltransport für Privat und Gewerbe. Montage inklusive.</p>
+                            <div className="flex items-center text-[#000080] font-bold text-sm group-hover:underline">Mehr erfahren <Icons.ArrowRight className="w-4 h-4 ml-2" /></div>
+                        </Card>
+                    </div>
+                </div>
+
+                {/* Problem Section */}
+                <div className="max-w-7xl mx-auto px-6 py-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                        <div className="space-y-6">
+                            <Badge variant="outline" className="border-blue-200 text-blue-600">Das Problem</Badge>
+                            <h2 className="text-3xl md:text-4xl font-bold text-[#000080] leading-tight">Ein Partner für den kompletten Wohnungswechsel</h2>
+                            <p className="text-gray-600 leading-relaxed text-lg">Ein Umzug ist mehr als nur Kisten schleppen. Es ist der Start in einen neuen Lebensabschnitt.</p>
+                            <ul className="space-y-3 pt-2">
+                                {['Keine Zeit für die Endreinigung?', 'Angst vor Schäden beim Transport?', 'Stress mit der Verwaltung?'].map((item, i) => (
+                                    <li key={i} className="flex items-center gap-3 text-gray-700 font-medium"><div className="w-6 h-6 rounded-full bg-red-50 text-red-500 flex items-center justify-center"><Icons.AlertCircle className="w-4 h-4" /></div>{item}</li>
+                                ))}
+                            </ul>
+                        </div>
+                        <Card variant="image" className="h-[400px] md:h-[500px] group">
+                            <img src="https://images.unsplash.com/photo-1603712725038-e9334ae8f39f?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                            <div className="absolute bottom-8 left-8 right-8">
+                                <div className="bg-white/10 backdrop-blur-md p-6 rounded-[24px] border border-white/20 shadow-lg">
+                                    <p className="font-bold text-lg mb-1 text-white">Wir übernehmen den Stress</p>
+                                    <p className="text-sm text-blue-100">Damit Sie sich auf Ihr neues Zuhause freuen können.</p>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+                </div>
+
+                {/* Process */}
+                <div className="py-24 bg-white rounded-[48px] my-8 border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div className="text-center mb-16 px-6 relative z-10">
+                        <Badge variant="secondary" className="bg-blue-50 text-[#000080] mb-4">Der Ablauf</Badge>
+                        <h2 className="text-3xl md:text-4xl font-bold text-[#000080] mb-4">So einfach funktioniert's</h2>
+                        <p className="text-gray-500 max-w-2xl mx-auto">Vier einfache Schritte zu Ihrem erfolgreichen Wohnungswechsel.</p>
+                    </div>
+                    <div className="max-w-7xl mx-auto px-6 relative">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+                            {[
+                                { icon: Icons.FileText, title: "1. Anfrage", desc: "Kontaktieren Sie uns für eine kostenlose Offerte." },
+                                { icon: Icons.Calendar, title: "2. Besichtigung", desc: "Kostenlose Besichtigung vor Ort." },
+                                { icon: Icons.Truck, title: "3. Ausführung", desc: "Pünktlicher Umzug und gründliche Reinigung." },
+                                { icon: Icons.Key, title: "4. Übergabe", desc: "Erfolgreiche Abgabe mit Garantie." }
+                            ].map((step, index, arr) => (
+                                <div key={index} className="relative group">
+                                    {index < arr.length - 1 && <div className="hidden md:block absolute top-12 left-1/2 w-full h-12 z-0 -translate-y-1/2 pointer-events-none"><ArrowConnector className="opacity-60" /></div>}
+                                    <div className="relative z-10 flex flex-col items-center text-center animate-float" style={{ animationDelay: `${index}s` }}>
+                                        <div className="w-24 h-24 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#000080] mb-6 shadow-lg shadow-blue-100/50 border-4 border-white"><step.icon className="w-10 h-10" /></div>
+                                        <h3 className="text-xl font-bold text-gray-900 mb-2">{step.title}</h3>
+                                        <p className="text-sm text-gray-500 leading-relaxed px-4">{step.desc}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <Testimonials />
+                <ContactSection />
+            </div>
+        );
+
+        const CleaningPage = ({ onNavigate }) => (
+            <div className="space-y-16 animate-[fadeIn_0.5s_ease-out]">
+                <div className="pt-6 px-4 md:px-6">
+                    <div className="relative h-[600px] w-full rounded-[48px] overflow-hidden bg-[#000080] shadow-2xl border-[6px] border-white/20">
+                        <div className="absolute inset-0 z-0">
+                            <img src="https://images.unsplash.com/photo-1581578731117-104f2a412727?q=80&w=2000&auto=format&fit=crop" className="w-full h-full object-cover opacity-50" style={{ mixBlendMode: 'soft-light' }} />
+                            <div className="absolute inset-0 bg-[#000080]/40" />
+                        </div>
+                        <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-6 z-10">
+                            <div className="mb-8 px-6 py-2.5 rounded-full bg-white/10 text-white backdrop-blur-md border border-white/20 text-xs font-bold tracking-widest uppercase shadow-lg">Reinigungsservice</div>
+                            <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tight leading-[1.1]">Glänzend sauber,<br/>garantiert abgenommen.</h1>
+                        </div>
+                    </div>
+                </div>
+                <div className="max-w-7xl mx-auto px-6 py-12">
+                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                        <div className="relative rounded-[32px] overflow-hidden shadow-2xl h-[500px] order-2 lg:order-1 bg-gray-100">
+                            <img src="https://images.unsplash.com/photo-1527515664-627775433300?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="space-y-8 order-1 lg:order-2">
+                            <div>
+                                <Badge variant="secondary" className="bg-blue-50 text-[#000080] mb-4 border border-blue-100">Das Problem</Badge>
+                                <h2 className="text-3xl md:text-5xl font-bold text-[#000080] leading-tight mb-6">Die Angst vor dem <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">Übergabeprotokoll</span></h2>
+                                <p className="text-lg text-gray-600 leading-relaxed">Sie haben alles gepackt, die Kisten sind weg... Doch dann der Blick zurück: Kalk im Bad, Fettspritzer in der Küche.</p>
+                            </div>
+                            <div className="space-y-4 pt-2">
+                                <h3 className="font-bold text-gray-900 text-lg">Häufige Mangelpunkte:</h3>
+                                <ul className="space-y-4">
+                                    {['Kalkrückstände in Sanitäranlagen', 'Schmutzige Lamellenstoren', 'Flecken auf Teppichböden', 'Ungeputzte Fensterrahmen'].map((item, i) => (
+                                        <li key={i} className="flex items-start gap-4">
+                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#000080] to-[#3B82F6] flex items-center justify-center text-white shrink-0 mt-0.5 shadow-lg shadow-blue-500/20"><Icons.CheckCircle className="w-3.5 h-3.5" /></div>
+                                            <span className="text-gray-700 font-medium text-lg leading-snug">{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-24 w-full">
+                        <div className="relative rounded-[32px] overflow-hidden h-[600px] w-full group shadow-2xl">
+                            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#000080] via-[#000080]/80 to-transparent opacity-95" />
+                            <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-20 text-center items-center z-10">
+                                <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight max-w-4xl">Warum Selberputzen oft teurer wird</h2>
+                                <p className="text-lg md:text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed mb-12">Eine Nachreinigung kostet oft das Doppelte. Wollen Sie dieses Risiko eingehen?</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-24">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-bold text-[#000080] mb-4">Unsere Abnahmegarantie ist Ihre Sicherheit</h2>
+                            <p className="text-gray-600 max-w-2xl mx-auto">Deti Facility Management GmbH übernimmt das für Sie.</p>
+                        </div>
+                        <div className="grid md:grid-cols-3 gap-6">
+                            {[
+                                { icon: Icons.Sparkles, title: "Umzugsreinigung", desc: "Komplettreinigung inklusive Küche." },
+                                { icon: Icons.ShieldCheck, title: "Abnahmegarantie", desc: "Wir sind bei der Übergabe dabei." },
+                                { icon: Icons.Box, title: "Gewerbereinigung", desc: "Saubere Büros und Praxisräume." }
+                            ].map((card, i) => (
+                                <Card key={i} className="p-6 bg-white border border-blue-50 hover:border-[#000080] transition-colors">
+                                    <card.icon className="w-10 h-10 text-[#000080] mb-4" />
+                                    <h3 className="font-bold text-lg mb-2">{card.title}</h3>
+                                    <p className="text-sm text-gray-500">{card.desc}</p>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <ContactSection />
+            </div>
+        );
+
+        const MovingPage = ({ onNavigate }) => (
+             <div className="space-y-16 animate-[fadeIn_0.5s_ease-out]">
+                <div className="pt-6 px-4 md:px-6">
+                    <div className="relative h-[600px] w-full rounded-[48px] overflow-hidden bg-[#000080] shadow-2xl border-[6px] border-white/20">
+                        <div className="absolute inset-0 z-0">
+                            <img src="https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=2000&auto=format&fit=crop" className="w-full h-full object-cover opacity-50" style={{ mixBlendMode: 'soft-light' }} />
+                            <div className="absolute inset-0 bg-[#000080]/40" />
+                        </div>
+                        <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-6 z-10">
+                            <div className="mb-8 px-6 py-2.5 rounded-full bg-white/10 text-white backdrop-blur-md border border-white/20 text-xs font-bold tracking-widest uppercase shadow-lg">Umzugsservice</div>
+                            <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tight leading-[1.1]">Wir tragen<br/>Ihre Last.</h1>
+                            <p className="text-xl md:text-2xl text-blue-100 max-w-2xl font-medium">Sicherer und stressfreier Umzug in Bern und Umgebung.</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="max-w-7xl mx-auto px-6 py-12">
+                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                        <div className="relative rounded-[32px] overflow-hidden shadow-2xl h-[500px] order-2 lg:order-1 bg-gray-100">
+                             <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover" />
+                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                        </div>
+                        <div className="space-y-8 order-1 lg:order-2">
+                            <div>
+                                 <Badge variant="secondary" className="bg-blue-50 text-[#000080] mb-4 border border-blue-100">Das Problem</Badge>
+                                 <h2 className="text-3xl md:text-5xl font-bold text-[#000080] leading-tight mb-6">Ein Umzug ist oft pure <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">Schwerstarbeit</span></h2>
+                            </div>
+                            <div className="space-y-4 pt-2">
+                                 <h3 className="font-bold text-gray-900 text-lg">Stressfaktoren:</h3>
+                                 <ul className="space-y-4">
+                                    {['Schwere Möbel durch enge Treppenhäuser', 'Risiko von Kratzern und Schäden', 'Zeitdruck am Zügeltag', 'Mangelndes Werkzeug'].map((item, i) => (
+                                        <li key={i} className="flex items-start gap-4">
+                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#000080] to-[#3B82F6] flex items-center justify-center text-white shrink-0 mt-0.5 shadow-lg shadow-blue-500/20"><Icons.CheckCircle className="w-3.5 h-3.5" /></div>
+                                            <span className="text-gray-700 font-medium text-lg leading-snug">{item}</span>
+                                        </li>
+                                    ))}
+                                 </ul>
+                            </div>
+                        </div>
+                    </div>
+                     <div className="mt-24 w-full">
+                        <div className="relative rounded-[32px] overflow-hidden h-[600px] w-full group shadow-2xl">
+                            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#000080] via-[#000080]/80 to-transparent opacity-95" />
+                            <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-20 text-center items-center z-10">
+                                <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight max-w-4xl">Risiko Eigenregie</h2>
+                                <p className="text-lg md:text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed mb-12">Ohne Profi-Versicherung bleiben Sie oft auf dem Schaden sitzen.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <ContactSection />
+            </div>
+        );
+
+        const AboutPage = () => (
+             <div className="space-y-16 animate-[fadeIn_0.5s_ease-out] pt-12">
+                <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+                    <div className="space-y-8">
+                         <Badge>Über uns</Badge>
+                         <h1 className="text-4xl md:text-5xl font-bold text-[#000080] leading-tight">Zuverlässigkeit ist unser Handwerk</h1>
+                         <div className="space-y-6 text-lg text-gray-600 leading-relaxed"><p>Willkommen bei Deti Facility Management GmbH.</p></div>
+                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6">
+                            {[{ label: "Transparenz", desc: "Festpreise." }, { label: "Qualität", desc: "Profi-Equipment." }, { label: "Kundenfokus", desc: "Ihre Zufriedenheit." }].map((val, i) => (
+                                <Card key={i} className="p-6 bg-white shadow-md hover:shadow-lg transition-all duration-300 border border-blue-50 hover:border-blue-200">
+                                    <h4 className="font-bold text-[#000080] mb-2 text-lg">{val.label}</h4>
+                                    <p className="text-sm text-gray-600 leading-snug">{val.desc}</p>
+                                </Card>
+                            ))}
+                         </div>
+                    </div>
+                    <div className="relative h-[600px] rounded-[48px] overflow-hidden shadow-2xl">
+                         <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2000&auto=format&fit=crop" className="w-full h-full object-cover" />
+                         <div className="absolute inset-0 bg-[#000080]/20 mix-blend-multiply" />
+                    </div>
+                </div>
+                <ContactSection />
+            </div>
+        );
+
+        const ContactPage = () => (
+            <div className="pt-12 animate-[fadeIn_0.5s_ease-out]">
+                <div className="max-w-7xl mx-auto px-6 mb-12 text-center">
+                    <h1 className="text-4xl md:text-5xl font-bold text-[#000080] mb-6">Kontaktieren Sie uns</h1>
+                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">Haben Sie Fragen oder wünschen Sie eine unverbindliche Offerte?</p>
+                </div>
+                <div className="max-w-7xl mx-auto px-6 pb-24 grid lg:grid-cols-2 gap-12">
+                    <div>
+                         <h3 className="text-2xl font-bold text-[#000080] mb-6">Deti Facility Management GmbH</h3>
+                         <ul className="space-y-6">
+                             <li className="flex gap-4"><div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-[#000080]"><Icons.Phone className="w-5 h-5"/></div><div><p className="text-sm text-gray-500">Telefon</p><p className="font-bold text-gray-900">+41 79 151 12 16</p></div></li>
+                             <li className="flex gap-4"><div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-[#000080]"><Icons.Mail className="w-5 h-5"/></div><div><p className="text-sm text-gray-500">Email</p><p className="font-bold text-gray-900">info@deti-reinigung.ch</p></div></li>
+                             <li className="flex gap-4"><div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-[#000080]"><Icons.MapPin className="w-5 h-5"/></div><div><p className="text-sm text-gray-500">Standort</p><p className="font-bold text-gray-900">Bern, Schweiz</p></div></li>
+                         </ul>
+                    </div>
+                     <Card className="p-8 md:p-10 shadow-lg border border-gray-100">
+                        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                            <div className="grid grid-cols-2 gap-4"><Input placeholder="Vorname" className="bg-gray-50"/><Input placeholder="Nachname" className="bg-gray-50"/></div>
+                            <Input placeholder="Email" className="bg-gray-50"/><Input placeholder="Telefon" className="bg-gray-50"/>
+                             <Button variant="primary" fullWidth className="mt-4 h-12">Absenden <Icons.Send className="w-4 h-4 ml-2" /></Button>
+                        </form>
+                    </Card>
+                </div>
+            </div>
+        );
+
+        /* --- LAYOUT & APP --- */
+
+        const Layout = ({ children, currentPage, onNavigate }) => {
+            const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+            const navItems = [{ id: 'home', label: 'Home' }, { id: 'cleaning', label: 'Reinigung' }, { id: 'moving', label: 'Umzüge' }, { id: 'about', label: 'Über uns' }, { id: 'contact', label: 'Kontakt' }];
+
+            return (
+                <div className="min-h-screen bg-[#EEF2FF] font-sans text-gray-900 flex flex-col">
+                    <header className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                            <div className="cursor-pointer" onClick={() => onNavigate('home')}><TextLogo text="Deti" /></div>
+                            <nav className="hidden md:flex gap-1 bg-gray-100 p-1.5 rounded-full">
+                                {navItems.map(item => (
+                                    <button key={item.id} onClick={() => onNavigate(item.id)} className={`px-6 py-2.5 rounded-full text-base font-medium transition-all ${currentPage === item.id ? 'bg-white text-[#000080] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>{item.label}</button>
+                                ))}
+                            </nav>
+                            <div className="flex gap-2 items-center">
+                                <Button variant="primary" className="hidden md:flex" onClick={() => onNavigate('contact')}>Offerte anfordern</Button>
+                                <button className="md:hidden p-2 rounded-full hover:bg-gray-100 text-gray-700" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                                    {isMobileMenuOpen ? <Icons.X className="w-6 h-6" /> : <Icons.Menu className="w-6 h-6" />}
+                                </button>
+                            </div>
+                        </div>
+                        {isMobileMenuOpen && (
+                            <div className="absolute top-full left-0 right-0 bg-white border-t border-gray-100 shadow-2xl md:hidden h-[calc(100vh-80px)] overflow-y-auto">
+                                <div className="p-6 flex flex-col gap-2">
+                                    {navItems.map(item => (
+                                        <button key={item.id} onClick={() => { onNavigate(item.id); setIsMobileMenuOpen(false); }} className={`flex items-center justify-between p-4 rounded-2xl text-lg font-bold ${currentPage === item.id ? 'bg-blue-50 text-[#000080]' : 'text-gray-600 hover:bg-gray-50'}`}>{item.label}</button>
+                                    ))}
+                                    <Button variant="primary" fullWidth className="h-14 text-lg shadow-xl shadow-blue-900/10 mt-4" onClick={() => { onNavigate('contact'); setIsMobileMenuOpen(false); }}>Offerte anfordern</Button>
+                                </div>
+                            </div>
+                        )}
+                    </header>
+                    <main className="flex-grow">{children}</main>
+                    <footer className="bg-[#000080] text-white pt-16 pb-8">
+                        <div className="max-w-7xl mx-auto px-6">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                                <div className="col-span-1 md:col-span-2">
+                                    <TextLogo color="white" text="Deti Facility Management" />
+                                    <p className="mt-6 text-blue-200 leading-relaxed max-w-sm">Ihr Partner für Sauberkeit und Umzüge in Bern.</p>
+                                </div>
+                                <div><h4 className="font-bold text-lg mb-6">Kontakt</h4><ul className="space-y-4 text-blue-200"><li><a href="tel:+41791511216">+41 79 151 12 16</a></li><li><a href="mailto:info@deti-reinigung.ch">info@deti-reinigung.ch</a></li><li>Bern, Schweiz</li></ul></div>
+                            </div>
+                            <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-blue-300">
+                                <p>© 2025 Deti Facility Management GmbH.</p>
+                                <div className="flex items-center gap-3 opacity-90">
+                                    <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-md border border-white/10"><Icons.ShieldCheck className="w-4 h-4 text-emerald-400" /><span className="text-[10px] font-bold tracking-wider text-white">AIOS SECURED</span></div>
+                                    <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-md border border-white/10"><div className="w-4 h-4 bg-red-600 rounded-[2px] relative flex items-center justify-center shadow-sm"><div className="w-2.5 h-0.5 bg-white absolute" /><div className="w-0.5 h-2.5 bg-white absolute" /></div><span className="text-[10px] font-bold tracking-wider text-white">SWISS HOSTING</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [page, setPage] = useState('home');
+            useEffect(() => { window.scrollTo(0, 0); }, [page]);
+
+            return (
+                <Layout currentPage={page} onNavigate={setPage}>
+                    {page === 'home' && <HomePage onNavigate={setPage} />}
+                    {page === 'cleaning' && <CleaningPage onNavigate={setPage} />}
+                    {page === 'moving' && <MovingPage onNavigate={setPage} />}
+                    {page === 'about' && <AboutPage onNavigate={setPage} />}
+                    {page === 'contact' && <ContactPage />}
+                </Layout>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
 </html>
