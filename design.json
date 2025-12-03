@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "name": "Stack Design System",
+    "version": "1.0.0",
+    "description": "A high-fidelity design system analyzing the 'Stack' visual identity."
+  },
+  "foundation": {
+    "colors": {
+      "primary": {
+        "main": "#000080", 
+        "description": "Deep Royal Blue/Navy used for primary brand elements and dark cards."
+      },
+      "secondary": {
+        "main": "#FFFFFF",
+        "description": "Pure white for card backgrounds."
+      },
+      "background": {
+        "main": "#EEF2FF",
+        "description": "Very light indigo/lavender tint for the app background."
+      },
+      "text": {
+        "primary": "#111827",
+        "secondary": "#6B7280",
+        "inverted": "#FFFFFF"
+      },
+      "accent": {
+        "blue": "#3B82F6",
+        "purple": "#8B5CF6"
+      }
+    },
+    "typography": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "weights": {
+        "regular": 400,
+        "medium": 500,
+        "bold": 700
+      },
+      "styles": {
+        "display": "text-5xl font-bold tracking-tight",
+        "heading": "text-2xl font-bold",
+        "body": "text-sm text-gray-600 leading-relaxed"
+      }
+    },
+    "spacing": {
+      "cardPadding": "24px",
+      "gridGap": "24px",
+      "borderRadius": "24px"
+    },
+    "shadows": {
+      "card": "0 10px 40px -10px rgba(0,0,0,0.08)"
+    }
+  },
+  "components": {
+    "Card": {
+      "base": "bg-white rounded-[24px] p-6 shadow-sm overflow-hidden relative",
+      "dark": "bg-[#000080] text-white"
+    },
+    "Button": {
+      "pill": "rounded-full px-6 py-2 text-sm font-medium transition-transform active:scale-95",
+      "primary": "bg-[#000080] text-white hover:bg-opacity-90",
+      "ghost": "bg-white/10 text-white backdrop-blur-md"
+    },
+    "Badge": {
+      "base": "rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wide bg-white text-[#000080]"
+    }
+  }
+}

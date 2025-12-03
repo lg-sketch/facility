@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "name": "Stack Design System",
+    "version": "1.1.0",
+    "description": "A comprehensive design system for the Stack application, characterized by deep navy blues, generous border radii, and a clean, high-fidelity bento-grid aesthetic.",
+    "lastUpdated": "2024-05-20"
+  },
+  "tokens": {
+    "colors": {
+      "brand": {
+        "primary": {
+          "value": "#000080",
+          "tailwind": "bg-[#000080]",
+          "description": "Deep Royal Navy. Used for primary actions, headings, and dark card backgrounds."
+        },
+        "background": {
+          "value": "#EEF2FF",
+          "tailwind": "bg-[#EEF2FF]",
+          "description": "Very light indigo/lavender tint. Global app background."
+        },
+        "surface": {
+          "value": "#FFFFFF",
+          "tailwind": "bg-white",
+          "description": "Card and modal backgrounds."
+        }
+      },
+      "text": {
+        "primary": {
+          "value": "#111827",
+          "tailwind": "text-gray-900",
+          "description": "Main headings and body text on light backgrounds."
+        },
+        "secondary": {
+          "value": "#6B7280",
+          "tailwind": "text-gray-500",
+          "description": "Subtitles and supporting text."
+        },
+        "inverted": {
+          "value": "#FFFFFF",
+          "tailwind": "text-white",
+          "description": "Text on dark backgrounds (primary color)."
+        },
+        "invertedSecondary": {
+          "value": "#BFDBFE",
+          "tailwind": "text-blue-200",
+          "description": "Subtext on dark backgrounds."
+        }
+      },
+      "feedback": {
+        "error": { "bg": "bg-red-50", "text": "text-red-700", "border": "border-red-100" },
+        "success": { "bg": "bg-emerald-100", "text": "text-emerald-700" },
+        "warning": { "bg": "bg-amber-100", "text": "text-amber-700" }
+      }
+    },
+    "typography": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "scale": {
+        "display": "text-6xl font-bold tracking-tight",
+        "h1": "text-4xl font-bold tracking-tight",
+        "h2": "text-2xl font-bold",
+        "h3": "text-lg font-bold",
+        "body": "text-sm text-gray-600 leading-relaxed",
+        "caption": "text-xs font-medium text-gray-500"
+      }
+    },
+    "radius": {
+      "card": "rounded-[32px]",
+      "input": "rounded-2xl",
+      "button": "rounded-full",
+      "badge": "rounded-full"
+    },
+    "shadows": {
+      "cardLight": "shadow-[0_8px_30px_rgb(0,0,0,0.04)]",
+      "cardDark": "shadow-[0_8px_30px_rgb(0,0,128,0.2)]",
+      "cardImage": "shadow-[0_8px_30px_rgb(0,0,0,0.12)]",
+      "inputFocus": "shadow-[0_4px_20px_rgba(0,0,128,0.08)]"
+    }
+  },
+  "components": {
+    "Card": {
+      "baseStyle": "rounded-[32px] overflow-hidden relative transition-all duration-300",
+      "variants": {
+        "light": "bg-white text-gray-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)]",
+        "dark": "bg-[#000080] text-white shadow-[0_8px_30px_rgb(0,0,128,0.2)]",
+        "image": "text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
+      }
+    },
+    "Button": {
+      "baseStyle": "rounded-full font-medium transition-all duration-200 active:scale-95 flex items-center justify-center px-6 py-3",
+      "variants": {
+        "primary": "bg-[#000080] text-white hover:bg-opacity-90 shadow-lg shadow-blue-900/20",
+        "secondary": "bg-white text-[#000080] hover:bg-gray-50",
+        "outline": "border border-gray-200 text-gray-700 hover:bg-gray-50",
+        "ghost": "bg-transparent text-gray-600 hover:bg-gray-100"
+      }
+    },
+    "Input": {
+      "baseStyle": "w-full bg-white text-gray-900 rounded-2xl border-2 px-4 py-3 outline-none transition-all duration-200 font-medium",
+      "states": {
+        "default": "border-transparent bg-gray-50/50",
+        "focus": "focus:border-[#000080]/10 focus:bg-white focus:shadow-[0_4px_20px_rgba(0,0,128,0.08)]",
+        "error": "border-red-100 bg-red-50 focus:border-red-500"
+      }
+    },
+    "Badge": {
+      "baseStyle": "inline-flex items-center rounded-full font-bold uppercase tracking-wider",
+      "sizes": {
+        "sm": "px-2.5 py-0.5 text-[10px]",
+        "md": "px-4 py-1.5 text-xs"
+      }
+    },
+    "Avatar": {
+      "baseStyle": "relative rounded-full overflow-hidden flex items-center justify-center bg-[#000080] text-white font-bold",
+      "sizes": {
+        "sm": "w-8 h-8 text-[10px]",
+        "md": "w-10 h-10 text-xs",
+        "lg": "w-16 h-16 text-lg",
+        "xl": "w-24 h-24 text-xl"
+      }
+    }
+  },
+  "layout": {
+    "grid": {
+      "desktop": "grid grid-cols-1 xl:grid-cols-3 gap-8",
+      "mobile": "flex flex-col gap-6"
+    },
+    "spacing": {
+      "sectionGap": "space-y-16",
+      "elementGap": "gap-4"
+    }
+  },
+  "guidelines": {
+    "principles": [
+      "Use Rounded Corners: Almost all containers should use 24px-32px border radius.",
+      "Primary Blue Dominance: #000080 is the core identity. Use it for branding, primary buttons, and emphasis cards.",
+      "Whitespace: Use padding generously (p-6 to p-12) within cards to allow content to breathe.",
+      "Typography: Stick to 'Inter'. Use tight tracking for large numbers and display text.",
+      "Bento Grid: Organize complex information into bento-grid style modular layouts."
+    ],
+    "iconography": {
+      "library": "Lucide React",
+      "style": "Stroke width 2, rounded caps/joins where possible.",
+      "usage": "Use icons sparingly to support text or inside circular action buttons."
+    }
+  }
+}
